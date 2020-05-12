@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
             with open(module_full_name, 'r', encoding='utf-8') as module:
                 content = module.read()
             parsed_data = parse(content)
+            a = 'a'
         except IOError as error:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
@@ -62,7 +63,12 @@ class MainWindow(QMainWindow):
         except SyntaxError as error:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
-            mb.setText(error.msg)
+            mb.setText(error.__str__())
+            mb.show()
+        except RuntimeError as error:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText(error.__str__())
             mb.show()
         else:
             mb = QMessageBox(self)
