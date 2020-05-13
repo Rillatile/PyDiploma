@@ -2,6 +2,7 @@ from PySide2.QtWidgets import (QMainWindow, QMessageBox, QLabel,
                                QVBoxLayout, QWidget, QFileDialog)
 from PySide2.QtCore import Slot, QSysInfo, Qt, QDir
 from parser import parse
+from cryptography import *
 
 
 class MainWindow(QMainWindow):
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self.show_about)
         central_widget = QWidget(self)
         layout = QVBoxLayout()
-        system_name = QLabel(f'Операционная система: { QSysInfo.prettyProductName() }', central_widget)
+        system_name = QLabel(f'Операционная система: {QSysInfo.prettyProductName()}', central_widget)
         system_name.setAlignment(Qt.AlignRight)
         layout.addWidget(system_name)
         central_widget.setLayout(layout)
