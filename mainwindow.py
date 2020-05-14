@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
             with open(module_full_name, 'r', encoding='utf-8') as module:
                 content = module.read()
             parsed_data = parse(content)
-            execute(parsed_data, 0)
+            result = execute(parsed_data, 0)
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')

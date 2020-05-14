@@ -7,7 +7,7 @@ def execute(data, block_number):
     for i in range(0, len(block['commands'])):
         transformed_command = transform_command(block['commands'][i], data)
         result.append(execute_command(transformed_command, data))
-    print(result)
+    return result
 
 
 def transform_command(command, data):
