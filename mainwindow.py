@@ -1,8 +1,9 @@
 from PySide2.QtWidgets import (QMainWindow, QMessageBox, QLabel,
                                QVBoxLayout, QWidget, QFileDialog)
 from PySide2.QtCore import Slot, QSysInfo, Qt, QDir
-from parser import parse
 from cryptography import *
+from executor import execute
+from parser import parse
 
 
 class MainWindow(QMainWindow):
@@ -55,6 +56,7 @@ class MainWindow(QMainWindow):
             with open(module_full_name, 'r', encoding='utf-8') as module:
                 content = module.read()
             parsed_data = parse(content)
+            execute(parsed_data, 0)
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
