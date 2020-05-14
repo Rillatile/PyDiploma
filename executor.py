@@ -1,4 +1,5 @@
 from subprocess import check_output, CalledProcessError, STDOUT
+from copy import deepcopy
 
 
 def execute(data, block_number):
@@ -13,7 +14,7 @@ def execute(data, block_number):
 def transform_command(command, data):
     i = 0
     command_str = command['command']
-    transformed_command = command
+    transformed_command = deepcopy(command)
     while i < len(command_str):
         if command_str[i] == '$':
             i += 1
@@ -49,19 +50,25 @@ def execute_command(command, data):
         result = check_output(command['command'].split(), stderr=STDOUT)
         result = result.decode('utf-8').strip()
         if command['result_variable'] != '':
-            flag = True
-            for variable in data['variables']:
-                if variable['name'] == command['result_variable']:
-                    variable['value'] = result
-                    flag = False
-                    break
-            if flag:
-                raise RuntimeError(f"Указана результирующая переменная '{command['result_variable']}', "
-                                   + 'но такой переменной не обнаружено. '
-                                   + 'Объявите её, используя синтаксис языка описания.')
+            set_result_variable_value(command, data, result)
         return 0, result
     except CalledProcessError as error:
+        if command['result_variable'] != '':
+            set_result_variable_value(command, data, error.output.decode('utf-8'))
         return error.returncode, error.output.decode('utf-8')
+
+
+def set_result_variable_value(command, data, value):
+    flag = True
+    for variable in data['variables']:
+        if variable['name'] == command['result_variable']:
+            variable['value'] = value
+            flag = False
+            break
+    if flag:
+        raise RuntimeError(f"Указана результирующая переменная '{command['result_variable']}', "
+                           + 'но такой переменной не обнаружено. '
+                           + 'Объявите её, используя синтаксис языка описания.')
 
 
 def get_value(name, data):

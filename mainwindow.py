@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
             parsed_data = parse(content)
             parsed_data['module_name'] = module_short_name
             mc = ModuleContent(parsed_data, self)
-            mc.show()
+            mc.start()
             # result = execute(parsed_data, 0)
         except IOError:
             mb = QMessageBox(self)

@@ -2,8 +2,10 @@ from PySide2.QtWidgets import (QMainWindow, QWidget,
                                QVBoxLayout, QHBoxLayout,
                                QLabel, QLineEdit,
                                QComboBox, QStackedWidget,
-                               QTabWidget)
-from PySide2.QtCore import Qt
+                               QTabWidget, QScrollArea,
+                               QPushButton)
+from PySide2.QtCore import Qt, Slot
+from executor import execute
 
 
 class ModuleContent(QMainWindow):
@@ -11,9 +13,13 @@ class ModuleContent(QMainWindow):
         super(ModuleContent, self).__init__(parent)
         self.setWindowTitle(f"Исполнение модуля '{data['module_name']}'")
         self.setMinimumSize(480, 360)
-        self.central_widget = QWidget(self)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
         self.variables = []
+        self.area = QScrollArea()
+        self.current_block_number = 0
+        self.data = data
         self.init_ui(data)
 
     def init_ui(self, data):
@@ -24,7 +30,11 @@ class ModuleContent(QMainWindow):
         if len(data['blocks']) > 0:
             self.init_blocks_ui(data)
         self.central_widget.setLayout(self.layout)
-        self.setCentralWidget(self.central_widget)
+        self.area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.area.setWidget(self.central_widget)
+        self.area.setFixedSize(self.central_widget.size())
+        self.area.setFixedWidth(self.central_widget.width() + self.layout.margin() * 2)
+        self.area.setWindowTitle(self.windowTitle())
 
     def init_variables_ui(self, data):
         variables_label = QLabel('Переменные:', self)
@@ -40,6 +50,7 @@ class ModuleContent(QMainWindow):
                 name_label.setStyleSheet('font-weight: bold;')
                 h_layout.addWidget(name_label)
                 value_input = QLineEdit(variable['value'])
+                self.variables.append(value_input)
                 h_layout.addWidget(value_input)
                 variables_widget.setLayout(h_layout)
                 self.layout.addWidget(variables_widget)
@@ -47,6 +58,8 @@ class ModuleContent(QMainWindow):
                 description_label.setAlignment(Qt.AlignCenter)
                 description_label.setStyleSheet('font-style: italic;')
                 self.layout.addWidget(description_label)
+            else:
+                self.variables.append(None)
 
     def init_constants_ui(self, data):
         constants_label = QLabel('Константы:', self)
@@ -78,6 +91,7 @@ class ModuleContent(QMainWindow):
         cb = QComboBox()
         blocks_stacked = QStackedWidget()
         cb.activated.connect(blocks_stacked.setCurrentIndex)
+        cb.activated.connect(self.update_current_block_number)
         for block in data['blocks']:
             cb.addItem(block['name'])
             tab_widget = QTabWidget()
@@ -92,7 +106,27 @@ class ModuleContent(QMainWindow):
                 if command['result_variable'] != '':
                     c = command['result_variable'] + ' = ' + c
                 commands_label.setText(commands_label.text() + '\n' + c)
+            commands_label.setText(commands_label.text() + '\n')
+            commands_label.setAlignment(Qt.AlignCenter)
             tab_widget.addTab(commands_label, 'Команды')
             blocks_stacked.addWidget(tab_widget)
         self.layout.addWidget(cb)
         self.layout.addWidget(blocks_stacked)
+        button = QPushButton('Исполнить модуль')
+        button.clicked.connect(self.start_execute)
+        self.layout.addWidget(button)
+
+    def start(self):
+        self.area.show()
+
+    @Slot(int)
+    def update_current_block_number(self, number):
+        self.current_block_number = number
+
+    @Slot()
+    def start_execute(self):
+        for i in range(0, len(self.variables)):
+            if self.variables[i] is not None:
+                self.data['variables'][i]['value'] = self.variables[i].text()
+        result = execute(self.data, self.current_block_number)
+        print(result)
