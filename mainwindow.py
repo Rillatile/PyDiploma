@@ -4,13 +4,15 @@ from PySide2.QtCore import Slot, QSysInfo, Qt, QDir
 from cryptography import *
 from executor import execute
 from parser import parse
+from modulecontent import ModuleContent
 
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle('ВКР')
-        self.setMinimumSize(480, 360)
+        self.setMinimumSize(800, 600)
+        self.central_widget = QWidget(self)
         self.init_ui()
 
     def init_ui(self):
@@ -22,13 +24,12 @@ class MainWindow(QMainWindow):
         close_action.triggered.connect(self.close_program)
         about_action = help_menu.addAction('О программе')
         about_action.triggered.connect(self.show_about)
-        central_widget = QWidget(self)
         layout = QVBoxLayout()
-        system_name = QLabel(f'Операционная система: {QSysInfo.prettyProductName()}', central_widget)
+        system_name = QLabel(f'Операционная система: {QSysInfo.prettyProductName()}', self.central_widget)
         system_name.setAlignment(Qt.AlignRight)
         layout.addWidget(system_name)
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+        self.central_widget.setLayout(layout)
+        self.setCentralWidget(self.central_widget)
 
     @Slot()
     def show_about(self):
@@ -48,15 +49,17 @@ class MainWindow(QMainWindow):
             idx = module_full_name.rfind('/')
             if idx != -1:
                 module_short_name = module_full_name[idx + 1:]
-                # Дописать отображение и убрать исполнение
-                self.execute_module(module_full_name)
+                self.execute_module(module_full_name, module_short_name)
 
-    def execute_module(self, module_full_name):
+    def execute_module(self, module_full_name, module_short_name):
         try:
             with open(module_full_name, 'r', encoding='utf-8') as module:
                 content = module.read()
             parsed_data = parse(content)
-            result = execute(parsed_data, 0)
+            parsed_data['module_name'] = module_short_name
+            mc = ModuleContent(parsed_data, self)
+            mc.show()
+            # result = execute(parsed_data, 0)
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
@@ -71,4 +74,4 @@ class MainWindow(QMainWindow):
             mb = QMessageBox(self)
             mb.setWindowTitle('Успешно')
             mb.setText('Модуль успешно добавлен.')
-            mb.show()
+            # mb.show()
