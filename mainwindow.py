@@ -1,8 +1,8 @@
-from PySide2.QtWidgets import (QMainWindow, QMessageBox, QLabel,
-                               QVBoxLayout, QWidget, QFileDialog)
+from PySide2.QtWidgets import (QMainWindow, QMessageBox,
+                               QLabel, QVBoxLayout,
+                               QWidget, QFileDialog,
+                               QComboBox, QScrollArea)
 from PySide2.QtCore import Slot, QSysInfo, Qt, QDir
-from cryptography import *
-from executor import execute
 from parser import parse
 from modulecontent import ModuleContent
 
@@ -13,6 +13,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('ВКР')
         self.setMinimumSize(800, 600)
         self.central_widget = QWidget(self)
+        self.layout = QVBoxLayout()
+        self.modules_cb = QComboBox()
+        self.modules_cb.currentIndexChanged.connect(self.set_module)
+        self.scroll = QScrollArea()
+        self.modules = []
         self.init_ui()
 
     def init_ui(self):
@@ -24,12 +29,21 @@ class MainWindow(QMainWindow):
         close_action.triggered.connect(self.close_program)
         about_action = help_menu.addAction('О программе')
         about_action.triggered.connect(self.show_about)
-        layout = QVBoxLayout()
         system_name = QLabel(f'Операционная система: {QSysInfo.prettyProductName()}', self.central_widget)
+        system_name.setMaximumHeight(self.central_widget.height() * 0.7)
         system_name.setAlignment(Qt.AlignRight)
-        layout.addWidget(system_name)
-        self.central_widget.setLayout(layout)
+        self.layout.addWidget(system_name)
+        self.layout.addWidget(self.modules_cb)
+        self.layout.addWidget(self.scroll)
+        if self.scroll.widget() is None:
+            self.modules_cb.setVisible(False)
+        self.central_widget.setLayout(self.layout)
         self.setCentralWidget(self.central_widget)
+        self.scroll.setAlignment(Qt.AlignCenter)
+
+    @Slot(int)
+    def set_module(self, index):
+        self.show_module(self.modules[index])
 
     @Slot()
     def show_about(self):
@@ -49,17 +63,24 @@ class MainWindow(QMainWindow):
             idx = module_full_name.rfind('/')
             if idx != -1:
                 module_short_name = module_full_name[idx + 1:]
-                self.execute_module(module_full_name, module_short_name)
+                self.check_module(module_full_name, module_short_name)
 
-    def execute_module(self, module_full_name, module_short_name):
+    def check_module(self, module_full_name, module_short_name):
+        for m in self.modules:
+            if m['full_name'] == module_full_name:
+                mb = QMessageBox(self)
+                mb.setWindowTitle('Ошибка')
+                mb.setText(f"Модуль '{module_short_name}' уже добавлен.")
+                mb.show()
+                return
+        self.modules.append({
+            'full_name': module_full_name,
+            'short_name': module_short_name
+        })
         try:
-            with open(module_full_name, 'r', encoding='utf-8') as module:
-                content = module.read()
+            with open(self.modules[-1]['full_name'], 'r', encoding='utf-8') as module_file:
+                content = module_file.read()
             parsed_data = parse(content)
-            parsed_data['module_name'] = module_short_name
-            mc = ModuleContent(parsed_data, self)
-            mc.start()
-            # result = execute(parsed_data, 0)
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
@@ -71,7 +92,28 @@ class MainWindow(QMainWindow):
             mb.setText(str(error))
             mb.show()
         else:
+            self.modules_cb.setVisible(True)
+            self.modules_cb.addItem(module_short_name)
             mb = QMessageBox(self)
             mb.setWindowTitle('Успешно')
             mb.setText('Модуль успешно добавлен.')
-            # mb.show()
+            mb.show()
+
+    def show_module(self, module):
+        try:
+            with open(module['full_name'], 'r', encoding='utf-8') as module_file:
+                content = module_file.read()
+            parsed_data = parse(content)
+            parsed_data['module_name'] = module['short_name']
+            mc = ModuleContent(parsed_data, self.scroll)
+            self.scroll.setWidget(mc)
+        except IOError:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText('При открытии файла модуля возникла ошибка.')
+            mb.show()
+        except (SyntaxError, RuntimeError) as error:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText(str(error))
+            mb.show()

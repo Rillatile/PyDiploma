@@ -1,23 +1,18 @@
-from PySide2.QtWidgets import (QMainWindow, QWidget,
-                               QVBoxLayout, QHBoxLayout,
-                               QLabel, QLineEdit,
-                               QComboBox, QStackedWidget,
-                               QTabWidget, QScrollArea,
+from PySide2.QtWidgets import (QWidget, QVBoxLayout,
+                               QHBoxLayout, QLabel,
+                               QLineEdit, QComboBox,
+                               QStackedWidget, QTabWidget,
                                QPushButton)
-from PySide2.QtCore import Qt, Slot
+from PySide2.QtCore import Qt, Slot, QSize
 from executor import execute
 
 
-class ModuleContent(QMainWindow):
+class ModuleContent(QWidget):
     def __init__(self, data, parent=None):
         super(ModuleContent, self).__init__(parent)
-        self.setWindowTitle(f"Исполнение модуля '{data['module_name']}'")
-        self.setMinimumSize(480, 360)
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout()
+        self.setMinimumSize(parent.size() - QSize(100, 100))
+        self.layout = QVBoxLayout(self)
         self.variables = []
-        self.area = QScrollArea()
         self.current_block_number = 0
         self.data = data
         self.init_ui(data)
@@ -29,12 +24,6 @@ class ModuleContent(QMainWindow):
             self.init_constants_ui(data)
         if len(data['blocks']) > 0:
             self.init_blocks_ui(data)
-        self.central_widget.setLayout(self.layout)
-        self.area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.area.setWidget(self.central_widget)
-        self.area.setFixedSize(self.central_widget.size())
-        self.area.setFixedWidth(self.central_widget.width() + self.layout.margin() * 2)
-        self.area.setWindowTitle(self.windowTitle())
 
     def init_variables_ui(self, data):
         variables_label = QLabel('Переменные:', self)
@@ -112,12 +101,9 @@ class ModuleContent(QMainWindow):
             blocks_stacked.addWidget(tab_widget)
         self.layout.addWidget(cb)
         self.layout.addWidget(blocks_stacked)
-        button = QPushButton('Исполнить модуль')
+        button = QPushButton('Выполнить блок')
         button.clicked.connect(self.start_execute)
         self.layout.addWidget(button)
-
-    def start(self):
-        self.area.show()
 
     @Slot(int)
     def update_current_block_number(self, number):

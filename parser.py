@@ -257,6 +257,16 @@ def parse_block(unparsed_block, line_number):
     return block
 
 
+def is_already_exists(var_or_const, parsed_data):
+    for variable in parsed_data['variables']:
+        if variable['name'] == var_or_const['name']:
+            return True
+    for constant in parsed_data['constants']:
+        if constant['name'] == var_or_const['name']:
+            return True
+    return False
+
+
 def parse_variables_block(source, line_number, parsed_data):
     i = 0
     is_entered = True
@@ -279,6 +289,9 @@ def parse_variables_block(source, line_number, parsed_data):
                 i += 1
             check_expected_symbol(';', source, i, line_number)
             variable = parse_variable(unparsed_variable, start_line_number, is_entered)
+            if is_already_exists(variable, parsed_data):
+                raise RuntimeError(f"Переменная или константа '{variable['name']}' уже была объявлена,"
+                                   + f" строка {line_number}.")
             i += 1
             is_entered = True
             parsed_data['variables'].append(variable)
@@ -304,6 +317,9 @@ def parse_constants_block(source, line_number, parsed_data):
                 i += 1
             check_expected_symbol(';', source, i, line_number)
             constant = parse_constant(unparsed_constant, start_line_number)
+            if is_already_exists(constant, parsed_data):
+                raise RuntimeError(f"Переменная или константа '{constant['name']}' уже была объявлена,"
+                                   + f" строка {line_number}.")
             i += 1
             parsed_data['constants'].append(constant)
         else:
