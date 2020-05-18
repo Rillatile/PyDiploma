@@ -1,13 +1,20 @@
-from subprocess import check_output, CalledProcessError, STDOUT
+import pexpect
 from copy import deepcopy
+from PySide2.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 
-def execute(data, block_number):
+def execute(data, block_number, parent):
     block = data['blocks'][block_number]
     result = []
     for i in range(0, len(block['commands'])):
         transformed_command = transform_command(block['commands'][i], data)
-        result.append(execute_command(transformed_command, data))
+        try:
+            result.append(execute_command(transformed_command, data, parent))
+        except RuntimeError as error:
+            mb = QMessageBox(parent)
+            mb.setWindowTitle('Ошибка')
+            mb.setText(str(error))
+            mb.show()
     return result
 
 
@@ -45,17 +52,32 @@ def transform_command(command, data):
     return transformed_command
 
 
-def execute_command(command, data):
-    try:
-        result = check_output(command['command'].split(), stderr=STDOUT)
-        result = result.decode('utf-8').strip()
-        if command['result_variable'] != '':
-            set_result_variable_value(command, data, result)
-        return 0, result
-    except CalledProcessError as error:
-        if command['result_variable'] != '':
-            set_result_variable_value(command, data, error.output.decode('utf-8'))
-        return error.returncode, error.output.decode('utf-8')
+def execute_command(command, data, parent):
+    p = pexpect.spawn(command['command'])
+    if command['command'][:4] == 'sudo':
+        p.expect('\[sudo\] ')
+        password, ok = QInputDialog().getText(parent, 'Ввод пароля',
+                                              'Введите пароль для sudo:', QLineEdit.Password)
+        if ok:
+            p.sendline(password)
+        else:
+            p.close()
+            raise RuntimeError(f"Для выполнения команды '{command['command']}' требуется пароль для sudo.")
+    idx = p.expect([pexpect.EOF, '\[sudo\] '])
+    if idx == 1:
+        mb = QMessageBox(parent)
+        mb.setWindowTitle('Ошибка')
+        mb.setText('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
+        mb.show()
+        p.close()
+        return p.exitstatus, 'Введён неправильный пароль для sudo. Выполнение блока остановлено.'
+    result = p.before.decode('utf-8')
+    p.close()
+    if command['command'][:4] == 'sudo':
+        result = result[result.find(':') + 1:]
+    if command['result_variable'] != '':
+        set_result_variable_value(command, data, result)
+    return p.exitstatus, result
 
 
 def set_result_variable_value(command, data, value):

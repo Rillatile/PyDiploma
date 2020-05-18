@@ -114,5 +114,4 @@ class ModuleContent(QWidget):
         for i in range(0, len(self.variables)):
             if self.variables[i] is not None:
                 self.data['variables'][i]['value'] = self.variables[i].text()
-        result = execute(self.data, self.current_block_number)
-        print(result)
+        result = execute(self.data, self.current_block_number, self)

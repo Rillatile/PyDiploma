@@ -73,12 +73,8 @@ class MainWindow(QMainWindow):
                 mb.setText(f"Модуль '{module_short_name}' уже добавлен.")
                 mb.show()
                 return
-        self.modules.append({
-            'full_name': module_full_name,
-            'short_name': module_short_name
-        })
         try:
-            with open(self.modules[-1]['full_name'], 'r', encoding='utf-8') as module_file:
+            with open(module_full_name, 'r', encoding='utf-8') as module_file:
                 content = module_file.read()
             parsed_data = parse(content)
         except IOError:
@@ -92,6 +88,10 @@ class MainWindow(QMainWindow):
             mb.setText(str(error))
             mb.show()
         else:
+            self.modules.append({
+                'full_name': module_full_name,
+                'short_name': module_short_name
+            })
             self.modules_cb.setVisible(True)
             self.modules_cb.addItem(module_short_name)
             mb = QMessageBox(self)
