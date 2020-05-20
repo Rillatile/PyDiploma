@@ -42,7 +42,7 @@ class CreateModuleWidget(QMainWindow):
         self.type_of_crypto.addItem('XOR')
         self.type_of_crypto.addItem('AES-256')
         layout.addWidget(self.type_of_crypto)
-        create_button = QPushButton('Создать модуль')
+        create_button = QPushButton('Сохранить модуль')
         create_button.setStyleSheet('font-weight: bold;')
         create_button.clicked.connect(self.save_module)
         layout.addWidget(create_button)
