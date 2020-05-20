@@ -24,7 +24,7 @@ class ResultModuleViewWidget(QMainWindow):
             block_name_label.setStyleSheet('font-weight: bold;')
             layout.addWidget(block_name_label)
             for j in range(0, len(result[i]) - 1):
-                command_result_label = QLabel(f'Команда №{i + 1}: \'{result[i][j][1].strip()}\'.')
+                command_result_label = QLabel(f'Команда №{j + 1}: \'{result[i][j][1].strip()}\'.')
                 command_result_label.setAlignment(Qt.AlignCenter)
                 if result[i][j][0] == 0:
                     command_result_label.setStyleSheet('background-color: ForestGreen;')
