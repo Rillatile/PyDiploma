@@ -2,7 +2,8 @@ def is_keyword(word):
     keywords = [
         'Variables',
         'Constants',
-        'Blocks'
+        'Blocks',
+        'Check'
     ]
     for keyword in keywords:
         if keyword == word:
@@ -357,6 +358,74 @@ def parse_blocks_block(source, line_number, parsed_data):
         raise RuntimeError(f'Ожидался исполняемый блок, строка {line_number}.')
 
 
+def parse_check_block(source, line_number, parsed_data):
+    i = 0
+    flag = False
+    while i < len(source):
+        if source[i].isspace():
+            if source[i] == '\n':
+                line_number += 1
+            i += 1
+        elif source[i].isalpha():
+            buf = ''
+            while (i < len(source)
+                   and (source[i].isalpha()
+                        or source[i] == '_')):
+                buf += source[i]
+                i += 1
+            i, line_number = skip_spaces(source, i, line_number)
+            check_expected_symbol(':', source, i, line_number)
+            i += 1
+            if buf == 'if':
+                flag = True
+                i, line_number = skip_spaces(source, i, line_number)
+                condition = ''
+                while i < len(source) and source[i] != ';':
+                    condition += source[i]
+                    i += 1
+                i, line_number = skip_spaces(source, i, line_number)
+                check_expected_symbol(';', source, i, line_number)
+                i += 1
+                parsed_data['check']['if'] = condition
+            elif buf == 'good_message':
+                i, line_number = skip_spaces(source, i, line_number)
+                check_expected_symbol('"', source, i, line_number)
+                gm = ''
+                i += 1
+                while i < len(source) and source[i] != '"':
+                    gm += source[i]
+                    i += 1
+                check_expected_symbol('"', source, i, line_number)
+                i += 1
+                i, line_number = skip_spaces(source, i, line_number)
+                check_expected_symbol(';', source, i, line_number)
+                i += 1
+                if gm != '':
+                    parsed_data['check']['good_message'] = gm
+            elif buf == 'bad_message':
+                i, line_number = skip_spaces(source, i, line_number)
+                check_expected_symbol('"', source, i, line_number)
+                bm = ''
+                i += 1
+                while i < len(source) and source[i] != '"':
+                    bm += source[i]
+                    i += 1
+                check_expected_symbol('"', source, i, line_number)
+                i += 1
+                i, line_number = skip_spaces(source, i, line_number)
+                check_expected_symbol(';', source, i, line_number)
+                i += 1
+                if bm != '':
+                    parsed_data['check']['bad_message'] = bm
+            else:
+                raise RuntimeError(f'Некорректное ключевое слово, строка {line_number}: \'{buf}\'.')
+        else:
+            raise_incorrect_symbol(source[i], line_number)
+    if not flag or parsed_data['check']['if'] == '':
+        raise RuntimeError('Модуль содержит проверку на успешность выполнения, '
+                           + 'но при этом не содержит проверочного условия.')
+
+
 def parse_keyword_block(keyword, source, line_number, parsed_data):
     if keyword == 'Variables':
         parse_variables_block(source, line_number, parsed_data)
@@ -364,6 +433,8 @@ def parse_keyword_block(keyword, source, line_number, parsed_data):
         parse_constants_block(source, line_number, parsed_data)
     elif keyword == 'Blocks':
         parse_blocks_block(source, line_number, parsed_data)
+    elif keyword == 'Check':
+        parse_check_block(source, line_number, parsed_data)
 
 
 def check_expected_symbol(symbol, source, position, line_number):
@@ -384,7 +455,12 @@ def parse(source):
     parsed_data = {
         'variables': [],
         'constants': [],
-        'blocks': []
+        'blocks': [],
+        'check': {
+            'if': '',
+            'good_message': 'Модуль выполнился успешно.',
+            'bad_message': 'Выполнение модуля завершилось ошибкой.'
+        }
     }
     while i < len(source):
         if source[i].isspace():

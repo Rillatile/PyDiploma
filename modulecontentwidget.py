@@ -2,14 +2,14 @@ from PySide2.QtWidgets import (QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel,
                                QLineEdit, QComboBox,
                                QStackedWidget, QTabWidget,
-                               QPushButton)
+                               QPushButton, QMessageBox)
 from PySide2.QtCore import Qt, Slot, QSize
 from executor import execute
 
 
-class ModuleContent(QWidget):
+class ModuleContentWidget(QWidget):
     def __init__(self, data, parent=None):
-        super(ModuleContent, self).__init__(parent)
+        super(ModuleContentWidget, self).__init__(parent)
         self.setMinimumSize(parent.size() - QSize(100, 100))
         self.layout = QVBoxLayout(self)
         self.variables = []
@@ -114,4 +114,10 @@ class ModuleContent(QWidget):
         for i in range(0, len(self.variables)):
             if self.variables[i] is not None:
                 self.data['variables'][i]['value'] = self.variables[i].text()
-        result = execute(self.data, self.current_block_number, self)
+        try:
+            result = execute(self.data, self.current_block_number, self)
+        except RuntimeError as error:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText(str(error))
+            mb.show()

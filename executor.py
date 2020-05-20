@@ -11,10 +11,11 @@ def execute(data, block_number, parent):
         try:
             result.append(execute_command(transformed_command, data, parent))
         except RuntimeError as error:
-            mb = QMessageBox(parent)
-            mb.setWindowTitle('Ошибка')
-            mb.setText(str(error))
-            mb.show()
+            raise error
+            # mb = QMessageBox(parent)
+            # mb.setWindowTitle('Ошибка')
+            # mb.setText(str(error))
+            # mb.show()
     return result
 
 
@@ -65,12 +66,14 @@ def execute_command(command, data, parent):
             raise RuntimeError(f"Для выполнения команды '{command['command']}' требуется пароль для sudo.")
     idx = p.expect([pexpect.EOF, '\[sudo\] '])
     if idx == 1:
-        mb = QMessageBox(parent)
-        mb.setWindowTitle('Ошибка')
-        mb.setText('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
-        mb.show()
         p.close()
-        return p.exitstatus, 'Введён неправильный пароль для sudo. Выполнение блока остановлено.'
+        raise RuntimeError('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
+        # mb = QMessageBox(parent)
+        # mb.setWindowTitle('Ошибка')
+        # mb.setText('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
+        # mb.show()
+        # p.close()
+        # return p.exitstatus, 'Введён неправильный пароль для sudo. Выполнение блока остановлено.'
     result = p.before.decode('utf-8')
     p.close()
     if command['command'][:4] == 'sudo':
