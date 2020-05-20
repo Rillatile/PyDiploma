@@ -5,6 +5,8 @@ from PySide2.QtWidgets import (QWidget, QVBoxLayout,
                                QPushButton, QMessageBox)
 from PySide2.QtCore import Qt, Slot, QSize
 from executor import execute
+from resultblockviewwidget import ResultBlockViewWidget
+from resultmoduleviewwidget import ResultModuleViewWidget
 
 
 class ModuleContentWidget(QWidget):
@@ -101,16 +103,19 @@ class ModuleContentWidget(QWidget):
             blocks_stacked.addWidget(tab_widget)
         self.layout.addWidget(cb)
         self.layout.addWidget(blocks_stacked)
-        button = QPushButton('Выполнить блок')
-        button.clicked.connect(self.start_execute)
-        self.layout.addWidget(button)
+        block_button = QPushButton('Выполнить выбранный блок')
+        block_button.clicked.connect(self.start_execute_block)
+        self.layout.addWidget(block_button)
+        module_button = QPushButton('Выполнить модуль')
+        module_button.clicked.connect(self.start_execute_module)
+        self.layout.addWidget(module_button)
 
     @Slot(int)
     def update_current_block_number(self, number):
         self.current_block_number = number
 
     @Slot()
-    def start_execute(self):
+    def start_execute_block(self):
         for i in range(0, len(self.variables)):
             if self.variables[i] is not None:
                 self.data['variables'][i]['value'] = self.variables[i].text()
@@ -121,3 +126,26 @@ class ModuleContentWidget(QWidget):
             mb.setWindowTitle('Ошибка')
             mb.setText(str(error))
             mb.show()
+        else:
+            rbvw = ResultBlockViewWidget(self.data['blocks'][self.current_block_number]['name'], result, self)
+            rbvw.show()
+
+    @Slot()
+    def start_execute_module(self):
+        for i in range(0, len(self.variables)):
+            if self.variables[i] is not None:
+                self.data['variables'][i]['value'] = self.variables[i].text()
+        result = []
+        try:
+            for i in range(0, len(self.data['blocks'])):
+                r = execute(self.data, i, self)
+                r.append(self.data['blocks'][i]['name'])
+                result.append(r)
+        except RuntimeError as error:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText(str(error))
+            mb.show()
+        else:
+            rmvw = ResultModuleViewWidget(self.data['module_name'], result, self)
+            rmvw.show()
