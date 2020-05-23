@@ -4,7 +4,7 @@ from PySide2.QtCore import Qt
 
 
 class ResultModuleViewWidget(QMainWindow):
-    def __init__(self, module_name, result, parent=None):
+    def __init__(self, module_name, result, module_success, parent=None):
         super(ResultModuleViewWidget, self).__init__(parent)
         self.setWindowTitle(f'Результаты выполнения модуля \'{module_name}\'')
         self.setWindowModality(Qt.ApplicationModal)

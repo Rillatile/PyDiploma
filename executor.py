@@ -1,6 +1,6 @@
 import pexpect
 from copy import deepcopy
-from PySide2.QtWidgets import QInputDialog, QLineEdit, QMessageBox
+from PySide2.QtWidgets import QInputDialog, QLineEdit
 
 
 def execute(data, block_number, parent):
@@ -12,10 +12,6 @@ def execute(data, block_number, parent):
             result.append(execute_command(transformed_command, data, parent))
         except RuntimeError as error:
             raise error
-            # mb = QMessageBox(parent)
-            # mb.setWindowTitle('Ошибка')
-            # mb.setText(str(error))
-            # mb.show()
     return result
 
 
@@ -105,3 +101,29 @@ def get_value(name, data):
             return constant['value']
     raise RuntimeError(f'Переменной либо константы с именем \'{name}\' не обнаружено.'
                        + ' Объявите её, используя синтаксис языка описания.')
+
+
+def check_module_success(data):
+    condition = data['check']['if']
+    i = 0
+    while i < len(condition):
+        if condition[i].isspace():
+            i += 1
+        elif condition[i] == '(':
+            pass
+        elif condition[i] == '=':
+            i += 1
+            if i >= len(condition) and condition[i] != '=':
+                raise SyntaxError()
+        elif condition[i] == '!':
+            pass
+        elif condition[i] == '>':
+            pass
+        elif condition[i] == '<':
+            pass
+        elif condition[i] == '&':
+            pass
+        elif condition[i] == '|':
+            pass
+        else:
+            pass

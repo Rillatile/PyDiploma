@@ -11,6 +11,7 @@ from createmodulewidget import CreateModuleWidget
 from cryptography import aes_decrypt, xor_str
 from hashlib import md5
 from editmodulewidget import EditModuleWidget
+from sys import argv
 
 
 class MainWindow(QMainWindow):
@@ -52,10 +53,11 @@ class MainWindow(QMainWindow):
         bw_layout.addWidget(delete_button)
         self.layout.addWidget(self.buttons_widget)
         self.layout.addWidget(self.scroll)
+        self.setCentralWidget(self.central_widget)
+        self.load_modules()
         if self.scroll.widget() is None:
             self.modules_cb.setVisible(False)
             self.buttons_widget.setVisible(False)
-        self.setCentralWidget(self.central_widget)
         self.scroll.setAlignment(Qt.AlignCenter)
 
     @Slot()
@@ -111,6 +113,22 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def delete_module(self):
+        try:
+            with open(argv[0].replace('main.py', 'data'), 'rb') as file:
+                data = file.read()
+            data_list = data.decode('utf-8').split('\n')[:-1]
+            for i in range(0, len(data_list)):
+                if data_list[i].find(self.modules[self.modules_cb.currentIndex()]['full_name']) > -1:
+                    data_list[i] = ''.encode('utf-8')
+                else:
+                    data_list[i] = (data_list[i] + '\n').encode('utf-8')
+            with open(argv[0].replace('main.py', 'data'), 'wb') as file:
+                file.writelines(data_list)
+        except IOError:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText('Не удалось удалить данные о модуле.')
+            mb.show()
         del self.modules[self.modules_cb.currentIndex()]
         self.modules_cb.removeItem(self.modules_cb.currentIndex())
 
@@ -156,6 +174,7 @@ class MainWindow(QMainWindow):
             mb.setWindowTitle('Успешно')
             mb.setText('Модуль успешно добавлен.')
             mb.show()
+            self.save_module_data(module_full_name, module_short_name)
         else:
             for m in self.modules:
                 if m['full_name'] == module_full_name:
@@ -172,6 +191,18 @@ class MainWindow(QMainWindow):
             mb = QMessageBox(self)
             mb.setWindowTitle('Успешно')
             mb.setText('Модуль успешно добавлен.')
+            mb.show()
+            self.save_module_data(module_full_name, module_short_name)
+
+    def save_module_data(self, module_full_name, module_short_name):
+        try:
+            with open(argv[0].replace('main.py', 'data'), 'ab') as file:
+                file.write((module_full_name + '|').encode('utf-8'))
+                file.write((module_short_name + '\n').encode('utf-8'))
+        except IOError:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText('Не удалось сохранить информацию о добавленном модуле.')
             mb.show()
 
     def show_module(self, module):
@@ -201,4 +232,21 @@ class MainWindow(QMainWindow):
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
             mb.setText(str(error))
+            mb.show()
+
+    def load_modules(self):
+        try:
+            with open(argv[0].replace('main.py', 'data'), 'rb') as file:
+                data = file.read()
+                str_data_list = data.decode('utf-8').split('\n')[:-1]
+                for m in str_data_list:
+                    self.modules.append({
+                        'full_name': m.split('|')[0],
+                        'short_name': m.split('|')[1]
+                    })
+                    self.modules_cb.addItem(self.modules[-1]['short_name'])
+        except IOError:
+            mb = QMessageBox(self)
+            mb.setWindowTitle('Ошибка')
+            mb.setText('Не удалось получить информацию о добавленных ранее модулях.')
             mb.show()

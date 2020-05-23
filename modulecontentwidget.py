@@ -4,7 +4,7 @@ from PySide2.QtWidgets import (QWidget, QVBoxLayout,
                                QStackedWidget, QTabWidget,
                                QPushButton, QMessageBox)
 from PySide2.QtCore import Qt, Slot, QSize
-from executor import execute
+from executor import execute, check_module_success
 from resultblockviewwidget import ResultBlockViewWidget
 from resultmoduleviewwidget import ResultModuleViewWidget
 
@@ -147,5 +147,6 @@ class ModuleContentWidget(QWidget):
             mb.setText(str(error))
             mb.show()
         else:
-            rmvw = ResultModuleViewWidget(self.data['module_name'], result, self)
+            module_success = check_module_success(self.data)
+            rmvw = ResultModuleViewWidget(self.data['module_name'], result, module_success, self)
             rmvw.show()
