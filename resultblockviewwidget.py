@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import (QMainWindow, QWidget,
-                               QVBoxLayout, QLabel)
+                               QVBoxLayout, QLabel,
+                               QScrollArea)
 from PySide2.QtCore import Qt
 
 
@@ -10,12 +11,17 @@ class ResultBlockViewWidget(QMainWindow):
         self.setWindowModality(Qt.ApplicationModal)
         self.setMinimumWidth(640)
         self.central_widget = QWidget()
+        self.scroll = QScrollArea()
         self.layout = QVBoxLayout(self.central_widget)
-        self.layout.setAlignment(Qt.AlignTop)
-        self.setCentralWidget(self.central_widget)
         self.init_ui(result)
 
     def init_ui(self, result):
+        self.scroll.setAlignment(Qt.AlignCenter)
+        self.layout.setAlignment(Qt.AlignTop)
+        self.setCentralWidget(self.central_widget)
+        self.layout.addWidget(self.scroll)
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
         for i in range(0, len(result)):
             result_label = QLabel(f'Команда №{i + 1}: \'{result[i][1].strip()}\'.')
             result_label.setAlignment(Qt.AlignCenter)
@@ -23,4 +29,5 @@ class ResultBlockViewWidget(QMainWindow):
                 result_label.setStyleSheet('background-color: ForestGreen;')
             else:
                 result_label.setStyleSheet('background-color: OrangeRed;')
-            self.layout.addWidget(result_label)
+            layout.addWidget(result_label)
+        self.scroll.setWidget(widget)

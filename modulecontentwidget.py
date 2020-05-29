@@ -148,5 +148,10 @@ class ModuleContentWidget(QWidget):
             mb.show()
         else:
             module_success = check_module_success(self.data)
-            rmvw = ResultModuleViewWidget(self.data['module_name'], result, module_success, self)
+            if module_success == 'True':
+                msg = self.data['check']['good_message']
+            else:
+                msg = self.data['check']['bad_message']
+            rmvw = ResultModuleViewWidget(self.data['module_name'], result, module_success,
+                                          msg, self)
             rmvw.show()

@@ -145,7 +145,8 @@ class MainWindow(QMainWindow):
     def show_about(self):
         mb = QMessageBox(self)
         mb.setWindowTitle('О программе')
-        mb.setText('Здесь будет краткое описание программы.')
+        mb.setText('Данная программа предназначена для создания, редактирования и исполнения модулей, '
+                   + 'взаимодействующих с операционной системой.')
         mb.show()
 
     @Slot()

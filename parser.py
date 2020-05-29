@@ -379,7 +379,6 @@ def parse_check_block(source, line_number, parsed_data):
             if buf == 'if':
                 flag = True
                 i, line_number = skip_spaces(source, i, line_number)
-                start_line_number = line_number
                 condition = ''
                 while i < len(source) and source[i] != ';':
                     condition += source[i]
@@ -388,7 +387,6 @@ def parse_check_block(source, line_number, parsed_data):
                 check_expected_symbol(';', source, i, line_number)
                 i += 1
                 parsed_data['check']['if'] = condition
-                parse_condition(condition, line_number)
             elif buf == 'good_message':
                 i, line_number = skip_spaces(source, i, line_number)
                 check_expected_symbol('"', source, i, line_number)
@@ -426,55 +424,6 @@ def parse_check_block(source, line_number, parsed_data):
     if not flag or parsed_data['check']['if'] == '':
         raise RuntimeError('Модуль содержит проверку на успешность выполнения, '
                            + 'но при этом не содержит проверочного условия.')
-
-
-def parse_condition(condition, line_number):
-    data = []
-    i = 0
-    while i < len(condition):
-        if condition[i].isspace():
-            if condition[i] == '\n':
-                line_number += 1
-            i += 1
-        elif condition[i] == '(':
-            i += 1
-        elif condition[i] == '=':
-            i += 1
-            check_expected_symbol('=', condition, i, line_number)
-            i += 1
-            i, line_number = skip_spaces(condition, i, line_number)
-            check_expected_symbol('(', condition, i, line_number)
-            stack = ['(']
-            i += 1
-            arguments = ''
-            while i < len(condition) and len(stack) != 0:
-                arguments += condition[i]
-                if condition[i] == '\n':
-                    line_number += 1
-                if condition[i] == '(':
-                    stack.append('(')
-                if condition[i] == ')':
-                    stack.pop(-1)
-                i += 1
-            i += 1
-            arguments = arguments[:-1]
-            c = {
-                'operation': '==',
-                'args': parse_condition(arguments, line_number)
-            }
-            data.append(c)
-        elif condition[i] == '!':
-            i += 1
-        elif condition[i] == '>':
-            i += 1
-        elif condition[i] == '<':
-            i += 1
-        elif condition[i] == '&':
-            i += 1
-        elif condition[i] == '|':
-            i += 1
-        else:
-            i += 1
 
 
 def parse_keyword_block(keyword, source, line_number, parsed_data):

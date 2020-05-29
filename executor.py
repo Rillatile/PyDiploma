@@ -64,12 +64,6 @@ def execute_command(command, data, parent):
     if idx == 1:
         p.close()
         raise RuntimeError('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
-        # mb = QMessageBox(parent)
-        # mb.setWindowTitle('Ошибка')
-        # mb.setText('Введён неправильный пароль для sudo. Выполнение блока остановлено.')
-        # mb.show()
-        # p.close()
-        # return p.exitstatus, 'Введён неправильный пароль для sudo. Выполнение блока остановлено.'
     result = p.before.decode('utf-8')
     p.close()
     if command['command'][:4] == 'sudo':
@@ -104,26 +98,15 @@ def get_value(name, data):
 
 
 def check_module_success(data):
-    condition = data['check']['if']
-    i = 0
-    while i < len(condition):
-        if condition[i].isspace():
-            i += 1
-        elif condition[i] == '(':
-            pass
-        elif condition[i] == '=':
-            i += 1
-            if i >= len(condition) and condition[i] != '=':
-                raise SyntaxError()
-        elif condition[i] == '!':
-            pass
-        elif condition[i] == '>':
-            pass
-        elif condition[i] == '<':
-            pass
-        elif condition[i] == '&':
-            pass
-        elif condition[i] == '|':
-            pass
-        else:
-            pass
+    command = {
+        'command': data['check']['if'],
+        'result_variable': ''
+    }
+    condition = transform_command(command, data)['command']
+    p = pexpect.spawn('python3')
+    p.expect('>>>')
+    p.sendline(condition)
+    result = ['True', 'False', 'Error']
+    idx = p.expect(result)
+    p.close()
+    return result[idx]
