@@ -5,7 +5,9 @@ from PySide2.QtCore import Qt, Slot
 from reportcreator import generate_report
 
 
+# Класс, описывающий виджет отображения результатов выполнения модуля
 class ResultModuleViewWidget(QMainWindow):
+    # Конструктор
     def __init__(self, module_name, result, module_success, message, parent=None):
         super(ResultModuleViewWidget, self).__init__(parent)
         self.module_name = module_name
@@ -20,6 +22,7 @@ class ResultModuleViewWidget(QMainWindow):
         self.layout = QVBoxLayout(self.central_widget)
         self.init_ui(result, module_success)
 
+    # Метод инициализации UI
     def init_ui(self, result, module_success):
         self.layout.addWidget(self.scroll)
         self.layout.setAlignment(Qt.AlignTop)
@@ -60,6 +63,7 @@ class ResultModuleViewWidget(QMainWindow):
         self.scroll.setAlignment(Qt.AlignCenter)
         self.scroll.setWidget(widget)
 
+    # Слот, обрабатывающий запрос пользователя на генерацию отчёта (нажатие соответствующей кнопки)
     @Slot()
     def start_report_generation(self):
         generate_report(self.module_name, self.module_success, self.result, self.message, self)

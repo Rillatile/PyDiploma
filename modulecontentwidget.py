@@ -9,7 +9,9 @@ from resultblockviewwidget import ResultBlockViewWidget
 from resultmoduleviewwidget import ResultModuleViewWidget
 
 
+# Класс, описывающий виджет отображения модуля
 class ModuleContentWidget(QWidget):
+    # Конструктор
     def __init__(self, data, parent=None):
         super(ModuleContentWidget, self).__init__(parent)
         self.setMinimumSize(parent.size() - QSize(100, 100))
@@ -19,6 +21,7 @@ class ModuleContentWidget(QWidget):
         self.data = data
         self.init_ui(data)
 
+    # Метод инициализации UI
     def init_ui(self, data):
         if len(data['variables']) > 0:
             self.init_variables_ui(data)
@@ -27,6 +30,7 @@ class ModuleContentWidget(QWidget):
         if len(data['blocks']) > 0:
             self.init_blocks_ui(data)
 
+    # Метод инициализации UI, отвечающего за переменные
     def init_variables_ui(self, data):
         variables_label = QLabel('Переменные:', self)
         variables_label.setAlignment(Qt.AlignCenter)
@@ -52,6 +56,7 @@ class ModuleContentWidget(QWidget):
             else:
                 self.variables.append(None)
 
+    # Метод инициализации UI, отвечающего за константы
     def init_constants_ui(self, data):
         constants_label = QLabel('Константы:', self)
         constants_label.setAlignment(Qt.AlignCenter)
@@ -74,6 +79,7 @@ class ModuleContentWidget(QWidget):
             description_label.setStyleSheet('font-style: italic;')
             self.layout.addWidget(description_label)
 
+    # Метод инициализации UI, отвечающего за исполняемые блоки
     def init_blocks_ui(self, data):
         blocks_label = QLabel('Блоки:', self)
         blocks_label.setAlignment(Qt.AlignCenter)
@@ -110,10 +116,12 @@ class ModuleContentWidget(QWidget):
         module_button.clicked.connect(self.start_execute_module)
         self.layout.addWidget(module_button)
 
+    # Слот, обрабатывающий изменение выбранного блока
     @Slot(int)
     def update_current_block_number(self, number):
         self.current_block_number = number
 
+    # Слот, обрабатывающий запрос пользователя на запуск выполнения блока (нажатие соответствующей кнопки)
     @Slot()
     def start_execute_block(self):
         for i in range(0, len(self.variables)):
@@ -130,6 +138,7 @@ class ModuleContentWidget(QWidget):
             rbvw = ResultBlockViewWidget(self.data['blocks'][self.current_block_number]['name'], result, self)
             rbvw.show()
 
+    # Слот, обрабатывающий запрос пользователя на запуск выполнения модуля (нажатие соответствующей кнопки)
     @Slot()
     def start_execute_module(self):
         for i in range(0, len(self.variables)):

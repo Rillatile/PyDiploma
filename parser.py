@@ -1,3 +1,4 @@
+# Функция проверки на ключевое слово
 def is_keyword(word):
     keywords = [
         'Variables',
@@ -11,6 +12,7 @@ def is_keyword(word):
     return False
 
 
+# Функция пропуска пробельных символов
 def skip_spaces(source, position, line_number):
     while position < len(source) and source[position].isspace():
         if source[position] == '\n':
@@ -19,6 +21,7 @@ def skip_spaces(source, position, line_number):
     return position, line_number
 
 
+# Функция парсинга переменной
 def parse_variable(unparsed_variable, line_number, is_entered):
     variable = {
         'name': '',
@@ -84,6 +87,7 @@ def parse_variable(unparsed_variable, line_number, is_entered):
     return variable
 
 
+# Функция парсинга константы
 def parse_constant(unparsed_constant, line_number):
     constant = {
         'name': '',
@@ -152,6 +156,7 @@ def parse_constant(unparsed_constant, line_number):
     return constant
 
 
+# Функция получения имени или описания
 def get_name_or_description(unparsed_block, position, line_number):
     check_expected_symbol('"', unparsed_block, position, line_number)
     if position < len(unparsed_block) and unparsed_block[position] == '"':
@@ -167,6 +172,7 @@ def get_name_or_description(unparsed_block, position, line_number):
     return unparsed_name.strip(), position, line_number
 
 
+# Функция парсинга исполняемого блока
 def parse_block(unparsed_block, line_number):
     block = {
         'name': '',
@@ -258,6 +264,7 @@ def parse_block(unparsed_block, line_number):
     return block
 
 
+# Функция проверки на то, что переменная либо константа с указанным именем уже существует
 def is_already_exists(var_or_const, parsed_data):
     for variable in parsed_data['variables']:
         if variable['name'] == var_or_const['name']:
@@ -268,6 +275,7 @@ def is_already_exists(var_or_const, parsed_data):
     return False
 
 
+# Функция парсинга блока переменных
 def parse_variables_block(source, line_number, parsed_data):
     i = 0
     is_entered = True
@@ -300,6 +308,7 @@ def parse_variables_block(source, line_number, parsed_data):
             raise_incorrect_symbol(source[i], line_number)
 
 
+# Функция парсинга блока констант
 def parse_constants_block(source, line_number, parsed_data):
     i = 0
     while i < len(source):
@@ -327,6 +336,7 @@ def parse_constants_block(source, line_number, parsed_data):
             raise_incorrect_symbol(source[i], line_number)
 
 
+# Функция парсинга блока исполняемых блоков
 def parse_blocks_block(source, line_number, parsed_data):
     is_block_expected = False
     i = 0
@@ -358,6 +368,7 @@ def parse_blocks_block(source, line_number, parsed_data):
         raise RuntimeError(f'Ожидался исполняемый блок, строка {line_number}.')
 
 
+# Функция парсинга проверочного блока
 def parse_check_block(source, line_number, parsed_data):
     i = 0
     flag = False
@@ -426,6 +437,7 @@ def parse_check_block(source, line_number, parsed_data):
                            + 'но при этом не содержит проверочного условия.')
 
 
+# Функция парсинга блоков по ключевым словам
 def parse_keyword_block(keyword, source, line_number, parsed_data):
     if keyword == 'Variables':
         parse_variables_block(source, line_number, parsed_data)
@@ -437,6 +449,7 @@ def parse_keyword_block(keyword, source, line_number, parsed_data):
         parse_check_block(source, line_number, parsed_data)
 
 
+# Функция проверки наличия ожидаемого символа
 def check_expected_symbol(symbol, source, position, line_number):
     if position >= len(source):
         raise RuntimeError('Ожидался символ \'' + symbol + f'\', строка {line_number}.')
@@ -445,10 +458,12 @@ def check_expected_symbol(symbol, source, position, line_number):
                           + ' Ожидался символ \'' + symbol + '\'.')
 
 
+# Функция, генерирующая исключение о некорректном символе
 def raise_incorrect_symbol(symbol, line_number):
     raise SyntaxError(f'Некорректный символ, строка {line_number}: \'{symbol}\'.')
 
 
+# Главная функция лексического анализа
 def parse(source):
     line_number = 1
     i = 0
@@ -462,17 +477,22 @@ def parse(source):
             'bad_message': 'Выполнение модуля завершилось ошибкой.'
         }
     }
+    # Посимвольно идём по содержимому модуля
     while i < len(source):
+        # Если это пробельный символ, ничего не делаем
         if source[i].isspace():
             if source[i] == '\n':
                 line_number += 1
             i += 1
+        # Если это буква
         elif source[i].isalpha():
             word = source[i]
             i += 1
+            # Получаем слово
             while i < len(source) and source[i].isalpha():
                 word += source[i]
                 i += 1
+            # Проверяем, является ли оно ключевым
             if is_keyword(word):
                 i, line_number = skip_spaces(source, i, line_number)
                 check_expected_symbol('{', source, i, line_number)
@@ -489,6 +509,7 @@ def parse(source):
                 check_expected_symbol('}', source, i, line_number)
                 keyword_block += source[i]
                 i += 1
+                # Парсим считанный блок
                 parse_keyword_block(word, keyword_block[1:-1], start_line_number, parsed_data)
             else:
                 raise SyntaxError(f'Обнаружено неключевое слово, строка {line_number}: \'{word}\'.')

@@ -7,6 +7,7 @@ from reportlab.platypus import Paragraph, Frame
 from PySide2.QtWidgets import QFileDialog
 
 
+# Функция генерации отчёта
 def generate_report(module_name, module_success, result, message, parent=None):
     directory = QFileDialog().getExistingDirectory(parent, 'Директория для сохранения отчёта')
     if directory != '':

@@ -12,6 +12,7 @@ from parser import parse
 from scrollmessagebox import ScrollMessageBox
 
 
+# Функция, генерирующая стандартный текст для редактора модуля при создании
 def create_basic_text():
     return ('Variables {\n\n}\n\n'
             + 'Constants {\n\n}\n\n'
@@ -19,6 +20,7 @@ def create_basic_text():
             + 'Check {\n if: ;\n good_message: "";\n bad_message: "";\n}\n')
 
 
+# Функция, генерирующая текст с подсказкой о синтаксисе
 def get_help_text():
     return ('Каждая строка с кодом должна оканчиваться символом «точка с запятой».\n\n'
             + 'Имеются блоки, описывающие аспекты исполнения. Есть четыре вида блоков: блок переменных, '
@@ -58,7 +60,9 @@ def get_help_text():
             + ' необязательно. В этом случае для них будут установлены значения по умолчанию.')
 
 
+# Класс, описывающий виджет для создания модуля
 class CreateModuleWidget(QMainWindow):
+    # Конструктор
     def __init__(self, parent=None):
         super(CreateModuleWidget, self).__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
@@ -69,6 +73,7 @@ class CreateModuleWidget(QMainWindow):
         self.type_of_crypto = QComboBox()
         self.init_ui()
 
+    # Метод инициализация UI
     def init_ui(self):
         layout = QVBoxLayout(self.central_widget)
         layout.addWidget(self.text_editor)
@@ -92,19 +97,25 @@ class CreateModuleWidget(QMainWindow):
         self.text_editor.setTextCursor(cursor)
         self.setCentralWidget(self.central_widget)
 
+    # Объявление сигнала о создании модуля
     module_created = Signal(str)
 
+    # Слот, обрабатывающий сохранение модуля
     @Slot()
     def save_module(self):
+        # Запрашиваем пароль
         password, ok = QInputDialog().getText(self, 'Ввод пароля',
                                               'Введите пароль для редактирования модуля:', QLineEdit.Password)
+        # Если пользователь не отменил ввод
         if ok:
             try:
+                # Проверяем модуль на ошибки
                 parsed_data = parse(self.text_editor.toPlainText())
                 module_full_path = QFileDialog.getSaveFileName(self, filter='*.module')[0]
                 if module_full_path.find('.module') == -1:
                     module_full_path += '.module'
                 with open(module_full_path, 'wb') as file:
+                    # Записываем модуль в файл, шифруя его
                     if self.type_of_crypto.currentIndex() == 0:
                         file.write(b'xor'
                                    + md5(password.encode('utf-8')).digest()
@@ -113,20 +124,24 @@ class CreateModuleWidget(QMainWindow):
                         file.write(b'aes'
                                    + md5(password.encode('utf-8')).digest()
                                    + aes_encrypt(self.text_editor.toPlainText()))
+            # Если случилась ошибка ввода / вывода
             except IOError:
                 mb = QMessageBox(self)
                 mb.setWindowTitle('Ошибка')
                 mb.setText('При сохранении файла модуля возникла ошибка.')
                 mb.show()
+            # Если в модуле есть ошибка
             except (SyntaxError, RuntimeError) as error:
                 mb = QMessageBox(self)
                 mb.setWindowTitle('Ошибка')
                 mb.setText(str(error))
                 mb.show()
             else:
+                # Если всё хорошо, сигнализируем об успешном создании модуля
                 self.module_created.emit(module_full_path)
                 self.close()
 
+    # Слот, обрабатывающий запрос пользователя на помощь по синтаксису (нажатие соответствующй кнопки)
     @Slot()
     def help_syntax(self):
         smb = ScrollMessageBox('Помощь', get_help_text(), parent=self)

@@ -3,7 +3,9 @@ from PySide2.QtWidgets import (QMainWindow, QLabel,
                                QWidget)
 
 
+# Класс, описывающий виджет отображения сообщения со scroll'ом
 class ScrollMessageBox(QMainWindow):
+    # Конструктор
     def __init__(self, title: str = 'Сообщение', text: str = '', parent=None):
         super(ScrollMessageBox, self).__init__(parent)
         self.setWindowTitle(title)

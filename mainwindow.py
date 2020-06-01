@@ -14,7 +14,9 @@ from editmodulewidget import EditModuleWidget
 from sys import argv
 
 
+# Класс, описывающий главное окно программы
 class MainWindow(QMainWindow):
+    # Конструктор
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle('ВКР')
@@ -28,6 +30,7 @@ class MainWindow(QMainWindow):
         self.modules = []
         self.init_ui()
 
+    # Метод инициализации UI
     def init_ui(self):
         file_menu = self.menuBar().addMenu('Файл')
         help_menu = self.menuBar().addMenu('Помощь')
@@ -60,6 +63,7 @@ class MainWindow(QMainWindow):
             self.buttons_widget.setVisible(False)
         self.scroll.setAlignment(Qt.AlignCenter)
 
+    # Слот, обрабатывающий запрос пользователя на создание нового модуля (нажатие соответствующей кнопки)
     @Slot()
     def create_module(self):
         cmw = CreateModuleWidget(self)
@@ -74,10 +78,12 @@ class MainWindow(QMainWindow):
                 module_short_name = module_full_name[idx + 1:]
                 self.check_module(module_full_name, module_short_name)
 
+    # Слот, обрабатывающий событие изменения модуля
     @Slot(int)
     def update_edited_module(self, idx):
         self.show_module(self.modules[idx])
 
+    # Слот, обрабатывающий запрос пользователя на изменение модуля (нажатие соответствующей кнопки)
     @Slot()
     def edit_module(self):
         password, ok = QInputDialog().getText(self, 'Ввод пароля',
@@ -111,6 +117,7 @@ class MainWindow(QMainWindow):
                 mb.setText(str(error))
                 mb.show()
 
+    # Слот, обрабатывающий запрос пользователя на удаление модуля (нажатие соответствующей кнопки)
     @Slot()
     def delete_module(self):
         try:
@@ -132,6 +139,7 @@ class MainWindow(QMainWindow):
         del self.modules[self.modules_cb.currentIndex()]
         self.modules_cb.removeItem(self.modules_cb.currentIndex())
 
+    # Слот, обрабатывающий изменение выбранного модуля
     @Slot(int)
     def set_module(self, index):
         if index > -1:
@@ -141,6 +149,7 @@ class MainWindow(QMainWindow):
             self.modules_cb.setVisible(False)
             self.buttons_widget.setVisible(False)
 
+    # Слот, обрабатывающий запрос пользователя на показ информации о программе (нажатие соответствующей кнопки)
     @Slot()
     def show_about(self):
         mb = QMessageBox(self)
@@ -149,10 +158,12 @@ class MainWindow(QMainWindow):
                    + 'взаимодействующих с операционной системой.')
         mb.show()
 
+    # Слот, обрабатывающий запрос пользователя на закрытие программы (выбора соответствующего пункта меню)
     @Slot()
     def close_program(self):
         self.close()
 
+    # Слот, обрабатывающий запрос пользователя на добавление существующего модуля (выбора соответствующего пункта меню)
     @Slot()
     def add_module(self):
         module_full_name = QFileDialog.getOpenFileName(self, 'Выберите модуль', QDir.homePath(), '*.module')[0]
@@ -162,6 +173,7 @@ class MainWindow(QMainWindow):
                 module_short_name = module_full_name[idx + 1:]
                 self.check_module(module_full_name, module_short_name)
 
+    # Метод для проверки модуля на корректность перед добавлением
     def check_module(self, module_full_name, module_short_name):
         if len(self.modules) == 0:
             self.modules.append({
@@ -195,6 +207,7 @@ class MainWindow(QMainWindow):
             mb.show()
             self.save_module_data(module_full_name, module_short_name)
 
+    # Метод сохранения данных о добавленных модулях
     def save_module_data(self, module_full_name, module_short_name):
         try:
             with open(argv[0].replace('main.py', 'data'), 'ab') as file:
@@ -206,6 +219,7 @@ class MainWindow(QMainWindow):
             mb.setText('Не удалось сохранить информацию о добавленном модуле.')
             mb.show()
 
+    # Метод отображения модуля
     def show_module(self, module):
         try:
             with open(module['full_name'], 'rb') as module_file:
@@ -235,6 +249,7 @@ class MainWindow(QMainWindow):
             mb.setText(str(error))
             mb.show()
 
+    # Метод загрузки данных о добавленных ранее модулях
     def load_modules(self):
         try:
             with open(argv[0].replace('main.py', 'data'), 'rb') as file:

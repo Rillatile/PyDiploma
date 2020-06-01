@@ -4,7 +4,9 @@ from PySide2.QtWidgets import (QMainWindow, QWidget,
 from PySide2.QtCore import Qt
 
 
+# Класс, описывающий виджет отображения результатов выполнения блока
 class ResultBlockViewWidget(QMainWindow):
+    # Конструктор
     def __init__(self, block_name, result, parent=None):
         super(ResultBlockViewWidget, self).__init__(parent)
         self.setWindowTitle(f'Результаты выполнения блока \'{block_name}\'')
@@ -15,6 +17,7 @@ class ResultBlockViewWidget(QMainWindow):
         self.layout = QVBoxLayout(self.central_widget)
         self.init_ui(result)
 
+    # Метод инициализации UI
     def init_ui(self, result):
         self.scroll.setAlignment(Qt.AlignCenter)
         self.layout.setAlignment(Qt.AlignTop)

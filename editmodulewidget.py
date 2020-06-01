@@ -10,7 +10,9 @@ from scrollmessagebox import ScrollMessageBox
 from createmodulewidget import get_help_text
 
 
+# Класс, описывающий виджет редактирования модуля
 class EditModuleWidget(QMainWindow):
+    # Конструктор
     def __init__(self, module_info, crypto_type, password_hash, text, idx, parent=None):
         super(EditModuleWidget, self).__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
@@ -25,6 +27,7 @@ class EditModuleWidget(QMainWindow):
         self.idx = idx
         self.init_ui()
 
+    # Метод инициализации UI
     def init_ui(self):
         layout = QVBoxLayout(self.central_widget)
         layout.addWidget(self.text_editor)
@@ -44,13 +47,17 @@ class EditModuleWidget(QMainWindow):
         self.text_editor.setTextCursor(cursor)
         self.setCentralWidget(self.central_widget)
 
+    # Объявление сигнала о завершении редактирования
     edited = Signal(int)
 
+    # Слот, обрабатывающий сохранение модуля
     @Slot()
     def save_module(self):
         try:
+            # Проверяем модуль на ошибки
             parsed_data = parse(self.text_editor.toPlainText())
             with open(self.module_info['full_name'], 'wb') as file:
+                # Записываем модуль в файл, шифруя его
                 if self.crypto_type == b'xor':
                     file.write(b'xor'
                                + self.password_hash
@@ -59,24 +66,30 @@ class EditModuleWidget(QMainWindow):
                     file.write(b'aes'
                                + self.password_hash
                                + aes_encrypt(self.text_editor.toPlainText()))
+        # Если случилась ошибка ввода / вывода
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
             mb.setText('При сохранении файла модуля возникла ошибка.')
             mb.show()
+        # Если в модуле есть ошибка
         except (SyntaxError, RuntimeError) as error:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
             mb.setText(str(error))
             mb.show()
         else:
+            # Если всё хорошо, сигнализируем об успешном редактировании модуля
             self.edited.emit(self.idx)
             self.close()
 
+    # Слот, обрабатывающий сохранение модуля новым файлом
     @Slot()
     def save_as_module(self):
         try:
+            # Проверяем модуль на ошибки
             parsed_data = parse(self.text_editor.toPlainText())
+            # Запрашиваем путь сохранения
             module_full_path = QFileDialog.getSaveFileName(self,
                                                            dir=self.module_info['full_name']
                                                            .replace(self.module_info['short_name'], ''),
@@ -84,6 +97,7 @@ class EditModuleWidget(QMainWindow):
             if module_full_path.find('.module') == -1:
                 module_full_path += '.module'
             with open(module_full_path, 'wb') as file:
+                # Записываем модуль в файл, шифруя его
                 if self.crypto_type == b'xor':
                     file.write(b'xor'
                                + self.password_hash
@@ -92,21 +106,25 @@ class EditModuleWidget(QMainWindow):
                     file.write(b'aes'
                                + self.password_hash
                                + aes_encrypt(self.text_editor.toPlainText()))
+        # Если случилась ошибка ввода / вывода
         except IOError:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
             mb.setText('При сохранении файла модуля возникла ошибка.')
             mb.show()
+        # Если в модуле есть ошибка
         except (SyntaxError, RuntimeError) as error:
             mb = QMessageBox(self)
             mb.setWindowTitle('Ошибка')
             mb.setText(str(error))
             mb.show()
         else:
+            # Если всё хорошо, сигнализируем об успешном редактировании модуля
             if module_full_path == self.module_info['full_name']:
                 self.edited.emit(self.idx)
             self.close()
 
+    # Слот, обрабатывающий запрос пользователя на помощь по синтаксису (нажатие соответствующй кнопки)
     @Slot()
     def help_syntax(self):
         smb = ScrollMessageBox('Помощь', get_help_text(), parent=self)
