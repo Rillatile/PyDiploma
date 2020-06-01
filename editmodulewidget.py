@@ -6,6 +6,8 @@ from PySide2.QtCore import Qt, Slot, Signal
 from PySide2.QtGui import QTextCursor
 from cryptography import aes_encrypt, xor_bytes
 from parser import parse
+from scrollmessagebox import ScrollMessageBox
+from createmodulewidget import get_help_text
 
 
 class EditModuleWidget(QMainWindow):
@@ -107,7 +109,5 @@ class EditModuleWidget(QMainWindow):
 
     @Slot()
     def help_syntax(self):
-        mb = QMessageBox(self)
-        mb.setWindowTitle('Помощь')
-        mb.setText('Бла-бла-бла.')
-        mb.show()
+        smb = ScrollMessageBox('Помощь', get_help_text(), parent=self)
+        smb.show()
