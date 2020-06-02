@@ -23,10 +23,15 @@ def skip_spaces(source, position, line_number):
 
 # Функция парсинга переменной
 def parse_variable(unparsed_variable, line_number, is_entered):
+    # Dict, описывающий переменную
     variable = {
+        # Имя переменной
         'name': '',
+        # Описание переменной
         'description': 'Описание отсутствует.',
+        # Значение переменной
         'value': '',
+        # Требуется ли вводить её значение, используя GUI
         'is_entered': is_entered
     }
     i = 0
@@ -37,20 +42,14 @@ def parse_variable(unparsed_variable, line_number, is_entered):
         variable['name'] += unparsed_variable[i]
         i += 1
     i, line_number = skip_spaces(unparsed_variable, i, line_number)
+    # Если началось описание переменной
     if i < len(unparsed_variable) and unparsed_variable[i] == ':':
-        description = ''
         i += 1
         i, line_number = skip_spaces(unparsed_variable, i, line_number)
-        check_expected_symbol('"', unparsed_variable, i, line_number)
-        i += 1
-        while i < len(unparsed_variable) and unparsed_variable[i] != '"':
-            description += unparsed_variable[i]
-            i += 1
-        check_expected_symbol('"', unparsed_variable, i, line_number)
-        i += 1
-        i, line_number = skip_spaces(unparsed_variable, i, line_number)
+        description, i, line_number = get_name_or_description(unparsed_variable, i, line_number)
         if description != '':
             variable['description'] = description.strip()
+    # Если переменной присваивается значение по умолчанию
     if i < len(unparsed_variable) and unparsed_variable[i] == '=':
         i += 1
         i, line_number = skip_spaces(unparsed_variable, i, line_number)
@@ -104,17 +103,9 @@ def parse_constant(unparsed_constant, line_number):
         i += 1
     i, line_number = skip_spaces(unparsed_constant, i, line_number)
     if i < len(unparsed_constant) and unparsed_constant[i] == ':':
-        description = ''
         i += 1
         i, line_number = skip_spaces(unparsed_constant, i, line_number)
-        check_expected_symbol('"', unparsed_constant, i, line_number)
-        i += 1
-        while i < len(unparsed_constant) and unparsed_constant[i] != '"':
-            description += unparsed_constant[i]
-            i += 1
-        check_expected_symbol('"', unparsed_constant, i, line_number)
-        i += 1
-        i, line_number = skip_spaces(unparsed_constant, i, line_number)
+        description, i, line_number = get_name_or_description(unparsed_constant, i, line_number)
         if description != '':
             constant['description'] = description.strip()
     if i < len(unparsed_constant) and unparsed_constant[i] == '=':
@@ -161,15 +152,14 @@ def get_name_or_description(unparsed_block, position, line_number):
     check_expected_symbol('"', unparsed_block, position, line_number)
     if position < len(unparsed_block) and unparsed_block[position] == '"':
         position += 1
-        unparsed_name = ''
+        unparsed_value = ''
         while position < len(unparsed_block) and unparsed_block[position] != '"':
-            unparsed_name += unparsed_block[position]
+            unparsed_value += unparsed_block[position]
             position += 1
         check_expected_symbol('"', unparsed_block, position, line_number)
         position += 1
         position, line_number = skip_spaces(unparsed_block, position, line_number)
-        check_expected_symbol(';', unparsed_block, position, line_number)
-    return unparsed_name.strip(), position, line_number
+    return unparsed_value.strip(), position, line_number
 
 
 # Функция парсинга исполняемого блока
@@ -197,8 +187,10 @@ def parse_block(unparsed_block, line_number):
             i, line_number = skip_spaces(unparsed_block, i, line_number)
             if word == 'name':
                 block['name'], i, line_number = get_name_or_description(unparsed_block, i, line_number)
+                check_expected_symbol(';', unparsed_block, i, line_number)
             elif word == 'description':
                 description, i, line_number = get_name_or_description(unparsed_block, i, line_number)
+                check_expected_symbol(';', unparsed_block, i, line_number)
                 if description != '':
                     block['description'] = description
             elif word == 'commands':
