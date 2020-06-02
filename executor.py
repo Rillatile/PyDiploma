@@ -51,8 +51,10 @@ def transform_command(command, data):
                     raise RuntimeError(f'Переменная \'{name}\' является результирующей для команды \'{command_str}\'.'
                                        + ' Запрещено использовать в команде результирующую переменную.')
                 # Подставляем вместо имени переменной / константы её значение
-                transformed_command['command'] = transformed_command['command'].replace('$' + name,
-                                                                                        get_value(name, data))
+                value = get_value(name, data)
+                if not value[0].isnumeric():
+                    value = f'"{value}"'
+                transformed_command['command'] = transformed_command['command'].replace('$' + name, value)
             else:
                 raise RuntimeError(f'В команде \'{command_str}\''
                                    + f" после символа '$'[{i - 1}] ожидалось имя переменной либо константы.")
@@ -127,6 +129,7 @@ def check_module_success(data):
         'result_variable': ''
     }
     condition = transform_command(command, data)['command']
+    condition = condition.strip().replace('\r\n', '" \\\n"')
     p = pexpect.spawn('python3')
     p.expect('>>>')
     p.sendline(condition)
