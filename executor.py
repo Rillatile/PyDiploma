@@ -52,8 +52,6 @@ def transform_command(command, data):
                                        + ' Запрещено использовать в команде результирующую переменную.')
                 # Подставляем вместо имени переменной / константы её значение
                 value = get_value(name, data)
-                if not value[0].isnumeric():
-                    value = f'"{value}"'
                 transformed_command['command'] = transformed_command['command'].replace('$' + name, value)
             else:
                 raise RuntimeError(f'В команде \'{command_str}\''
@@ -66,7 +64,7 @@ def transform_command(command, data):
 # Функция выполнения команды
 def execute_command(command, data, parent):
     # Запускаем дочерний процесс с командной оболочкой и передаём в него команду
-    p = pexpect.spawn(command['command'])
+    p = pexpect.spawn('/bin/bash', ['-c', command['command']])
     # Если требуется ввести пароль для sudo
     if command['command'][:4] == 'sudo':
         p.expect('\[sudo\] ')
@@ -111,15 +109,20 @@ def set_result_variable_value(command, data, value):
 
 # Функция получения значения переменной / константы
 def get_value(name, data):
+    value = None
     for variable in data['variables']:
         if variable['name'] == name:
-            return variable['value']
+            value = variable['value']
     for constant in data['constants']:
         if constant['name'] == name:
-            return constant['value']
+            value = constant['value']
     # Если указанная переменная / константа не объявлена
-    raise RuntimeError(f'Переменной либо константы с именем \'{name}\' не обнаружено.'
-                       + ' Объявите её, используя синтаксис языка описания.')
+    if value is None:
+        raise RuntimeError(f'Переменной либо константы с именем \'{name}\' не обнаружено.'
+                           + ' Объявите её, используя синтаксис языка описания.')
+    if value == '' or not value[0].isnumeric():
+        value = f'"{value}"'
+    return value
 
 
 # Функция проверки выполнения итогового условия проверки правильности выполнения модуля
