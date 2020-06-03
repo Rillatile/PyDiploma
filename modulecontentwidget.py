@@ -9,6 +9,10 @@ from resultblockviewwidget import ResultBlockViewWidget
 from resultmoduleviewwidget import ResultModuleViewWidget
 
 
+def is_entered(variable):
+    return variable['is_entered']
+
+
 # Класс, описывающий виджет отображения модуля
 class ModuleContentWidget(QWidget):
     # Конструктор
@@ -23,7 +27,7 @@ class ModuleContentWidget(QWidget):
 
     # Метод инициализации UI
     def init_ui(self, data):
-        if len(data['variables']) > 0:
+        if len(list(filter(is_entered, data['variables']))) > 0:
             self.init_variables_ui(data)
         if len(data['constants']) > 0:
             self.init_constants_ui(data)
