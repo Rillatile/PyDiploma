@@ -196,7 +196,9 @@ def parse_block(unparsed_block, line_number):
             elif word == 'commands':
                 check_expected_symbol('(', unparsed_block, i, line_number)
                 i += 1
-                while i < len(unparsed_block) and unparsed_block[i] != ')':
+                while i < len(unparsed_block):
+                    if unparsed_block[i] == ')' and unparsed_block[i - 1] != '\\':
+                        break
                     if unparsed_block[i].isspace():
                         if unparsed_block[i] == '\n':
                             line_number += 1
@@ -224,7 +226,9 @@ def parse_block(unparsed_block, line_number):
                             i, line_number = skip_spaces(unparsed_block, i, line_number)
                             check_expected_symbol('"', unparsed_block, i, line_number)
                         i += 1
-                        while i < len(unparsed_block) and unparsed_block[i] != '"':
+                        while i < len(unparsed_block):
+                            if unparsed_block[i] == '"' and unparsed_block[i - 1] != '\\':
+                                break
                             command['command'] += unparsed_block[i]
                             i += 1
                         check_expected_symbol('"', unparsed_block, i, line_number)
@@ -337,12 +341,14 @@ def parse_blocks_block(source, line_number, parsed_data):
             if source[i] == '\n':
                 line_number += 1
             i += 1
-        elif source[i] == '[':
+        elif source[i] == '[' and i > 0 and source[i - 1] != '\\':
             start_line_number = line_number
             is_block_expected = False
             i += 1
             unparsed_block = ''
-            while i < len(source) and source[i] != ']':
+            while i < len(source):
+                if source[i] == ']' and source[i - 1] != '\\':
+                    break
                 unparsed_block += source[i]
                 if source[i] == '\n':
                     line_number += 1
@@ -491,8 +497,10 @@ def parse(source):
                 start_line_number = line_number
                 keyword_block = source[i]
                 i += 1
-                while i < len(source) and source[i] != '}':
-                    if source[i] == '{':
+                while i < len(source):
+                    if source[i] == '}' and source[i - 1] != '\\':
+                        break
+                    if source[i] == '{' and source[i - 1] != '\\':
                         raise_incorrect_symbol(source[i], line_number)
                     keyword_block += source[i]
                     if source[i] == '\n':

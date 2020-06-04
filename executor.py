@@ -23,8 +23,15 @@ def execute(data, block_number, parent):
 # Функция замены переменных / констант в команде на их значения
 def transform_command(command, data):
     i = 0
-    command_str = command['command']
+    command_str = command['command'].replace('\\"', '"') \
+        .replace('\\[', '[') \
+        .replace('\\]', ']') \
+        .replace('\\{', '{') \
+        .replace('\\}', '}') \
+        .replace('\\(', '(') \
+        .replace('\\)', ')')
     transformed_command = deepcopy(command)
+    transformed_command['command'] = command_str
     # Идём посимвольно по команде
     while i < len(command_str):
         # Если наткнулись на переменную / константу

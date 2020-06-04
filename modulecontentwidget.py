@@ -103,7 +103,13 @@ class ModuleContentWidget(QWidget):
             commands_label = QLabel('')
             commands_label.setAlignment(Qt.AlignCenter)
             for command in block['commands']:
-                c = command['command']
+                c = command['command'].replace('\\"', '"') \
+                    .replace('\\[', '[') \
+                    .replace('\\]', ']') \
+                    .replace('\\{', '{') \
+                    .replace('\\}', '}') \
+                    .replace('\\(', '(') \
+                    .replace('\\)', ')')
                 if command['result_variable'] != '':
                     c = command['result_variable'] + ' = ' + c
                 commands_label.setText(commands_label.text() + '\n' + c)
