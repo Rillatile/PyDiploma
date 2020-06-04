@@ -35,7 +35,7 @@ def transform_command(command, data):
     # Идём посимвольно по команде
     while i < len(command_str):
         # Если наткнулись на переменную / константу
-        if command_str[i] == '$':
+        if command_str[i] == '$' and i + 1 < len(command_str) and not command_str[i + 1].isnumeric():
             i += 1
             if (i < len(command_str)
                     and (command_str[i].isalpha()
